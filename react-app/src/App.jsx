@@ -1,14 +1,18 @@
 import { useState } from 'react'
 import './App.css'
+import Form from './component/Form.jsx'
+import Search from './component/Search.jsx'
+import Person from './component/Person.jsx'
+// import Note from './component/Note.jsx'
 
 function App() {
   const [name, setName] = useState('')
   const [number, setNumber] = useState('')
-  const [search, setSearch] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
   const [editingId, setEditingId] = useState(null)
   const [person, setPerson] = useState([
-    { id:1, name:'Jackson', number: '010 5628 5628 67' },
-    { id:2, name:'Felix', number: '0901244678' }
+    { id:1, name:'Jackson', number: '010 5628 5628 67', date: new Date().toLocaleString() },
+    { id:2, name:'Felix', number: '0901244678', date: new Date().toLocaleString() }
   ])
 
   function handleSubmit(e){
@@ -17,25 +21,24 @@ function App() {
       alert('Please fill in all form')
       return
     }
-
     if(editingId){
       setPerson(person.map(p => p.id === editingId ? { ...p, name, number } : p))
       setEditingId(null)
     } else {
-      setPerson([...person, { id: person.length + 1, name, number }]);
+      setPerson([...person, { id: Date.now(), name, number, date: new Date().toLocaleString() }]);
     }
-
     setName('')
     setNumber('')
   }
 
   const personsToShow = person.filter((p) => 
-    p.name.toLowerCase().includes(search.toLowerCase())
+    p.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   const handleDelete = (id) =>{
-    const updatePersons = person.filter((p) => p.id !==id);
-    setPerson(updatePersons);
+    if(window.confirm("Are you sure you want to delete this")){
+      setPerson(person.filter((p) => p.id !==id));
+    }
   }
 
   const handleEdit = (p) => {
@@ -47,39 +50,18 @@ function App() {
   return (
     <div className="container">
       <h1>PhoneBook App</h1>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="name">Name:</label>
-        <input type="text" value={name} onChange={(e) => setName(e.target.value)} id="name" name="name"/>
-        
-        <label htmlFor="number">Number:</label>
-        <input type="text" name="number" value={number} id="number" onChange={(e) => setNumber(e.target.value)} />
+      <Form 
+        handleSubmit={handleSubmit}
+        name={name}
+        setName={setName}
+        number={number}
+        setNumber={setNumber}
+        editingId={editingId}
+      />
+      <Search search={searchTerm} setSearch={setSearchTerm}/>
+      <Person persons={personsToShow} onEdit={handleEdit} onDelete={handleDelete} />
+      {/* <Note/> */}
 
-        <button type="submit" className="submit-btn">{editingId ? 'Update' : 'Submit'}</button>
-      </form>
-
-      <div className="search-box">
-        <h2>Search</h2>
-        <input 
-          type="text" 
-          placeholder='Search name...' 
-          value={search}
-          onChange={(e) => setSearch(e.target.value)} 
-          id="search" 
-          name="search"
-        />
-      </div>
-
-      <ul className="contact-list">
-        {personsToShow.map((p) => (
-          <li key={p.id}>
-            <span className="info">{p.name}: {p.number}</span>
-            <div className="btn-group">
-              <button className="edit" onClick={() => handleEdit(p)}>Edit</button>
-              <button className="delete" onClick={() => handleDelete(p.id)}>Delete</button>
-            </div>
-          </li>
-        ))}
-      </ul>
     </div>
   )
 }
